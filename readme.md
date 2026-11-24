@@ -1,5 +1,13 @@
-# CYD Based Cart Scale for food pantrys
-This is a project to create a simple and inexpensive scale for measuring food donations at free food providers.  
+# CYD Based Cart Scale for Food Pantry and Food Rescue organizations
+
+This is a project to create a simple and inexpensive scale for measuring food donations at free food providers, done initially for the Lebanon Ohio Food Pantry, and volunteers with very sore backs. These
+organizations have a need to weigh donations and purchases for reporting and record keeping. 
+
+The value here is that instead of loading up a cart or dolly from the truck, bringing it in, 
+then unloading each box from the cart to the scale, then back to a cart, you can simply 
+load up the cart, wheel it onto this scale, measure the weight all at once (there are buttons
+to chose a cart tare or a dolly tare or a traditional tare setting), and wheel it on back
+for stocking. 
 
 CYD is "Cheap Yellow Display", and is an inexpensive ESP32 based development board with built in touch screen that is widely available and well supported by hobbyists such as myself.
 
@@ -35,7 +43,7 @@ Screwed into big rigid board
               G2     G4
 ```
 
-Case 3d modeled by me (I'll post it on thingiverse when it is sorted, email me if you want it before then)
+Case 3d modeled by me (I'll post it on thingiverse when it is sorted, email me if you want it before then).  Another nice thing about this board was that it has very detailed dimensional drawings: https://www.lcdwiki.com/res/E32R35T/E32R35T_Size.pdf
 
 Wiring things up (CYD = Cheap Yellow Display ESP32 board I2C)
 ```
@@ -62,3 +70,8 @@ Wiring things up (HX711 to 4x half bridge strain gauges)
                   G4-Black          G2-Black
                   G1 White          G2-White
 ```
+
+For connectors between the scale and the CYD, I am going to try using some RJ45 sockets with
+header pins on both ends, so that I can simply use (or crimp new) ethernet cables for the
+connection, which is a clever approach my Miller TIG welder foot pedal uses. We will see
+how it works.
