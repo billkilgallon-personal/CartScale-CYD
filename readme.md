@@ -10,7 +10,7 @@ This is a work in progress, documentation will be updated once it is matured. Th
 ## Display, touchscreen, and compute module:
 '''
       https://www.amazon.com/dp/B0D93MBWC2
-      Hosyond 3.5'' 320x480 Touch Screen ESP32 Display with WiFi+BT, ST7796U Driver LCD TFT Screen Module for Arduino IoT
+      Hosyond 3.5 320x480 Touch Screen ESP32 Display with WiFi+BT, ST7796U Driver LCD TFT Screen Module for Arduino IoT
       https://www.lcdwiki.com/res/E32R35T/3.5inch_E32R35T_E32N35T_MicroPython_Demo_Instructions.pdf
       https://www.lcdwiki.com/3.5inch_ESP32-32E_Display
       Micropython library pulled from board demo library, and slightly extended by me to include a "big LED number" capability
