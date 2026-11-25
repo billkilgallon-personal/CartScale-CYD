@@ -2,54 +2,16 @@
 # Author: Bill@Kilgallons.com, 20260910
 # MIT license
 #
+# See readme.md for more info
 #
-# Display, touchscreen, and compute module:
-#      https://www.amazon.com/dp/B0D93MBWC2
-#      Hosyond 3.5'' 320x480 Touch Screen ESP32 Display with WiFi+BT, ST7796U Driver LCD TFT Screen Module for Arduino IoT
-#      https://www.lcdwiki.com/res/E32R35T/3.5inch_E32R35T_E32N35T_MicroPython_Demo_Instructions.pdf
-#      https://www.lcdwiki.com/3.5inch_ESP32-32E_Display
-#      Micropython library pulled from board demo, and extended by me
-#
-# Strain gauges
-#      https://www.amazon.com/dp/B07B4DNJ2L
-#      4 x 50kg Load Cell Half Bridge Strain Gauge Weight Sensor + 1x HX711 Module
-#      Which included the HX711 sensor
-#      https://github.com/SergeyPiskunov/micropython-hx711/tree/master
-#
-# 3d printed strain gauge holders from Thingiverse module scaled up by 1%
-# Screwed into big rigid board, see wiring below to HX711
-#               G1     G3
-#               G2     G4
-#
-# Wiring things up (CYD = Cheap Yellow Display ESP32 board I2C)
-#
-#        CYD                  Ribbon       HX711
-#    =================================================
-#        3.3V (Red)           Red          VCC (Red)
-#        SDA/IO32 (Black)     Orange       Data (Orange)
-#        SCL/IO25 (Yel)       Yellow       Clk (White)
-#        Gnd (Grn)            Grn          Gnd (Black)
-#       
-# Wiring things up (HX711 to 4x half bridge strain gauges)
-#
-#    Hx711       Strain Gauge      Strain Gauge
-#   ============================================
-#     E-           G1-Red
-#     A+           G2-Red
-#     A-           G3-Red
-#     E+           G4-Red
-#                  G1-Black          G3-BLack
-#                  G3-White          G4-White
-#                  G4-Black          G2-Black
-#                  G1 White          G2-White
-#
+
+# Some global constants
+scale_count_conversion_factor = 9611     # Manually calculated by measuring two known counts and weights 
+typ_zero_sensor_count = 837700           # Manually measured after platform built
 
 # Function to get a fresh tare value
-
-# The rough tare of the scale and platform itself with no "extra" weight
-baseline_tare = 802249
     
-def get_tare_counts(hx)->int :
+def get_sensor_tare_raw_counts(hx)->int :
     tare = 0
 
     for x in range(0,10) :
@@ -67,6 +29,162 @@ def get_tare_counts(hx)->int :
     tare = int(tare / 10)
 
     return tare
+
+# Calculate tare pounds
+def get_tare_lbs(dolly_tare_state, cart_tare_state) -> int :
+
+    tare_lbs = 0 
+    dolly_lbs = 15
+    cart_lbs = 45
+
+    if dolly_tare_state:
+        tare_lbs += dolly_lbs
+
+    if cart_tare_state:
+        tare_lbs += cart_lbs
+
+    return tare_lbs
+
+#
+# Convert counts to lbs.  This needs to include the true tare counts from the sensor read
+#
+
+def sensor_lbs(sensor_tare_raw_counts, current_sensor_counts) -> int :
+
+    tared_sensor_counts = current_sensor_counts - sensor_tare_raw_counts
+
+    if tared_sensor_counts < 0:
+        tared_sensor_counts = 0
+
+    pounds = int(tared_sensor_counts / scale_count_conversion_factor)
+
+    return pounds
+
+#
+# Set up the buttons
+# This is a fussy little empirical process, just manually calculated and tuned
+#
+
+# Tare button, valid states are "READY" and "IN_PROGRESS"
+
+def paint_tare_button(state : str, mylcd) :
+  
+    tare_but_x = 0
+    tare_but_y = 197
+
+    if 'READY' in state:
+        bgcolor = BLUE
+        button_text = 'Tare'
+
+    else:
+        bgcolor = RED
+        button_text = 'Wait'
+
+    # Paint the button
+    mylcd.Fill_Rect(tare_but_x,     # X
+                    tare_but_y,   # Y
+                    100,   # width
+                    60,    # height
+                    bgcolor) # color
+
+    # Label the button
+    # Now put label Show_String(x, y, string, font, color, backcolor = None)
+    mylcd.Show_String(tare_but_x + 15, tare_but_y + 10, button_text, Font_16x32_EN, WHITE)
+
+# returns true if x y coordinates represent a press of the tare button
+def pressed_tare_button(x, y) -> bool :
+
+    if x > 0 and x < 100 :
+        if y > 197 and y < 257 :
+            return True
+
+    return False
+
+# Dolly button "ON" "OFF"
+def paint_dolly_button(state : str, mylcd) :
+    dolly_but_x = 109
+    dolly_but_y = 197
+
+    if 'OFF' in state:
+        bgcolor = BLUE
+
+    else:
+        bgcolor = RED
+
+    # Paint the button
+    mylcd.Fill_Rect(dolly_but_x,     # X
+                    dolly_but_y,    # Y
+                    100,    # width
+                    60,    # height
+                    bgcolor) # color
+
+    # Label the button
+    # Now put label Show_String(x, y, string, font, color, backcolor = None)
+    mylcd.Show_String(dolly_but_x + 10, dolly_but_y + 10, "Dolly", Font_16x32_EN, WHITE)
+
+# returns true if x y coordinates represent a press of the tare button
+def pressed_dolly_button(x, y) -> bool :
+
+    if x > 109 and x < 209 :
+        if y > 197 and y < 257 :
+            return True
+
+    return False
+
+# Cart button
+def paint_cart_button(state : str, mylcd) :
+
+    cart_but_x = 218
+    cart_but_y = 197
+
+    if 'OFF' in state:
+        bgcolor = BLUE
+
+    else:
+        bgcolor = RED
+
+    # Paint the button
+    mylcd.Fill_Rect(cart_but_x,    # X
+                    cart_but_y,    # Y
+                    100,    # width
+                    60,    # height
+                    bgcolor) # color
+
+    # Label the button
+    # Now put label Show_String(x, y, string, font, color, backcolor = None)
+    mylcd.Show_String(cart_but_x + 15, cart_but_y + 10, "Cart", Font_16x32_EN, WHITE)
+
+# returns true if x y coordinates represent a press of the tare button
+def pressed_cart_button(x, y) -> bool :
+
+    if x > 218 and x < 318 :
+        if y > 197 and y < 257 :
+            return True
+
+    return False
+
+# Display the Tare info string
+def display_tare_info(mylcd, tare_lbs) :
+    mylcd.Fill_Rect(0, 464, 320, 16, BLACK)
+    mylcd.Show_String(1, 464, 'Current Tare : ' + str(tare_lbs) + ' lbs (auto subtracted)', Font_8x16_EN, WHITE)
+
+# This is really just here to warn you that something has either gone really wrong with the sensor,
+# or that you tared it with something else on the scale (intentionally or not)
+def display_sensor_info(mylcd, tare_count) :
+
+    current_delta = abs(tare_count - typ_zero_sensor_count)
+    sensor_tare_lb_delta = int(current_delta / scale_count_conversion_factor)
+
+    mylcd.Fill_Rect(0, 444, 320, 16, BLACK)
+    mylcd.Show_String(1, 444, 'Sensor Tare : ' + str(sensor_tare_lb_delta), Font_8x16_EN, WHITE)
+
+#
+# Start of program
+#
+
+# Tare button states
+dolly_tare_state = False
+cart_tare_state = False
 
 ######################################################
 # CYD Display Configuration
@@ -104,27 +222,10 @@ print('SPI channel for LCD set up with baud rate ' + str(SPI_W_SPEED))
 mylcd.LCD_Clear(BLACK)
 mylcd.Show_BMP_Pic('food_pantry.bmp', 0, 0)
 
-# Set up a couple of buttons
-
-# Set up the Tare button
-mylcd.Fill_Rect(0,     # X
-                197,   # Y
-                159,   # width
-                60,    # height
-                BLUE) # color
-
-# Now put label Show_String(x, y, string, font, color, backcolor = None)
-mylcd.Show_String(5, 207, "Take Tare", Font_16x32_EN, WHITE)
-
-# Set up the hold button
-mylcd.Fill_Rect(170,   # X
-                197,   # Y
-                150,   # width
-                60,    # height
-                BLUE) # color
-
-# Now put label
-mylcd.Show_String(205, 207, "Hold", Font_16x32_EN, WHITE)
+# Show the boot state buttons
+paint_tare_button('IN_PROGRESS', mylcd)
+paint_dolly_button('OFF', mylcd)
+paint_cart_button('OFF', mylcd)
 
 # Define where the numbers should go
 digits_x_pos = 20
@@ -146,9 +247,6 @@ hx = HX711(d_out=32, pd_sck=25)
 # Turn off then on
 hx.power_off()
 hx.power_on()
-
-# scaling factor for scale empiraclly measured to arrive at value
-scale_count_conversion_factor = 9611
 
 ##############################
 # Set up the touch screen
@@ -180,50 +278,57 @@ mytouch.Set_Touch_Cal(253, 240, 3464, 3622, 320, 480, 1)
 #
 
 print('Setting tare for unloaded scale')
+tare_count = get_sensor_tare_raw_counts(hx) # Done at boot or with button push
 
-tare = get_tare_counts(hx) # Done at boot or with button push
-tare_lbs = int(abs(tare - baseline_tare) / scale_count_conversion_factor)
+tare_lbs = get_tare_lbs(dolly_tare_state, cart_tare_state)
+display_tare_info(mylcd, tare_lbs)
 
-mylcd.Show_String(1, 464, 'Current Tare : ' + str(tare_lbs) + ' lbs / ' + str(tare) + ' counts', Font_8x16_EN, WHITE)
+display_sensor_info(mylcd, tare_count)
 
-print('Tare raw counts: ' + str(tare))
+print('Tare raw counts: ' + str(tare_count))
+print('Tare Lbs: ' + str(tare_lbs))
 
-# Set up the hold button
-hold_state = 0
+# Refresh Tare Button state
+paint_tare_button('READY', mylcd)
 
 while True:
-
+    
     #
     # Now lets try reading our own peripheral (strain gauges set up as a weight scale)
     #
 
-    if not hold_state :
-        # not sure if True means ready or not.  Play with this when it actually matters
-        while hx.is_ready() :
-            continue
+    while hx.is_ready() :
+        continue
 
-        # Read raw data
-        raw_value = hx.read()
-        print("Scale read :", raw_value)
+    # Read raw data
+    current_sensor_counts = hx.read()
+    print('Raw sensor counts: ' + str(current_sensor_counts))
 
-        # Convert it to pounds
-        pounds = int((raw_value - tare) / scale_count_conversion_factor)
-        if pounds < 0 : pounds = 0
+    # Convert to lbs
+    pounds = sensor_lbs(tare_count, current_sensor_counts)
+    # print('sensor lbs are: ' + str(pounds))
 
-        # Display the reading on the display (320x480)
-        # display_number(mylcd, number: int, position_x : int, position_y : int, char_x_width : int, char_y_height : int, color)
+    # Apply current tare
+    pounds = pounds - tare_lbs
 
-        # Erase old number (8 erases all segments in the digit)
-        display_number(mylcd, 888, digits_x_pos, digits_y_pos, digit_width, digit_height, BLACK)
+    if pounds < 0 :
+        pounds = 0
 
-        # Draw new number
-        display_number(mylcd, pounds, digits_x_pos, digits_y_pos, digit_width, digit_height, RED)
+    # Display the reading on the display (320x480)
+    # display_number(mylcd, number: int, position_x : int, position_y : int, char_x_width : int, char_y_height : int, color)
 
-        # print('Displayed ' + str(pounds))
+    # Erase old number (8 erases all segments in the digit)
+    display_number(mylcd, 888, digits_x_pos, digits_y_pos, digit_width, digit_height, BLACK)
+
+    # Draw new number
+    display_number(mylcd, pounds, digits_x_pos, digits_y_pos, digit_width, digit_height, RED)
+
+    # print('Displayed ' + str(pounds))
 
     #
-    # Now lets try the touch screen
+    # Now lets check the touch screen
     #
+    # Not sure how touch is really using this
     coord = [0xFFFF, 0xFFFF]
     loopcount = 0
 
@@ -234,76 +339,89 @@ while True:
         # 5 reads is about a second.  The touch screen is slow also.
 
         loopcount += 1
-        if loopcount > 15 :
+        if loopcount > 35 :
             break
-    
-        if mytouch.Read_Touch(coord, 200):
-            print('Tare touch: ' + str(coord))
+
+        if mytouch.Touch_Pressed(coord, 200) :
+
+            # print('Got Touch: ' + str(coord))
+
+            mytouch.Read_Touch(coord, 200)
 
             x = coord[0]
             y = coord[1]
 
             #
-            # See if it was the tare button
+            # Look for Tare button press
             #
-
-            if ( abs(x-86) < 20) and (abs(y-220) < 20) :
-
-                # Blank the old tare display
-                mylcd.Show_String(1, 464, 'Current Tare : ' + str(tare_lbs) + ' lbs / ' + str(tare) + ' counts', Font_8x16_EN, BLACK)
+            
+            if pressed_tare_button(x, y) :
+                print('Tare touch: ' + str(coord))
 
                 # Toggle the tare button color to busy
-                mylcd.Fill_Rect(0,     # X
-                                197,   # Y
-                                159,   # width
-                                60,    # height
-                                RED) # color
-
-                # Now update label
-                mylcd.Show_String(5, 207, "Wait", Font_16x32_EN, WHITE)
+                paint_tare_button('IN_PROGRESS', mylcd)
                 
                 # Get the new tare 
-                tare = get_tare_counts(hx) # Done at boot or with button push
-
-                # Display the new tare
-                tare_lbs = int(abs(tare - baseline_tare) / scale_count_conversion_factor)
-                mylcd.Show_String(1, 464, 'Current Tare : ' + str(tare_lbs) + ' lbs / ' + str(tare) + ' counts', Font_8x16_EN, WHITE)               
+                tare_count = get_sensor_tare_raw_counts(hx) # Done at boot or with button push
+                tare_lbs = get_tare_lbs(dolly_tare_state, cart_tare_state)
 
                 # Toggle the tare button color to normal
-                mylcd.Fill_Rect(0,     # X
-                                197,   # Y
-                                159,   # width
-                                60,    # height
-                                BLUE) # color
+                paint_tare_button('READY', mylcd)
 
-                # Now update label
-                mylcd.Show_String(5, 207, "Take Tare", Font_16x32_EN, WHITE)
+                # Display the Tare info string
+                display_tare_info(mylcd, tare_lbs)
+                display_sensor_info(mylcd, tare_count)
 
-                print('New Tare: ' + str(tare))
+                print('New Tare: ' + str(tare_lbs))
 
             #
-            # See if it was the hold button
+            # Look for Dolly button push
+            #
+            
+            if pressed_dolly_button(x, y) :
+                print('Joleen, Joleen! : ' + str(coord))
+
+                dolly_tare_state = not dolly_tare_state
+
+                # Display the right dolly state button
+                if dolly_tare_state :
+                    paint_dolly_button('ON', mylcd)
+
+                    # Dolly tare on forces cart tare off
+                    cart_tare_state = False
+                    paint_cart_button('OFF', mylcd)
+                else :
+                    paint_dolly_button('OFF', mylcd)
+
+                # Display the Tare info string
+                tare_lbs = get_tare_lbs(dolly_tare_state, cart_tare_state)
+                display_tare_info(mylcd, tare_lbs)
+
+            #
+            # Look for Cart button push
             #
 
-            if ( abs(x-248) < 20) and (abs(y-230) < 20) :
-                print('Hold touch: ' + str(coord))
+            if pressed_cart_button(x, y) :
+                print('Cart touch: ' + str(coord))
 
-                hold_state = not hold_state
+                cart_tare_state = not cart_tare_state
 
-                if hold_state :
-                    mylcd.Fill_Rect(170, 197, 150, 60, RED)
+                # Display the right dolly state button
+                if cart_tare_state :
+                    paint_cart_button('ON', mylcd)
+                                        
+                    # Dolly tare on forces cart tare off
+                    dolly_tare_state = False
+                    paint_dolly_button('OFF', mylcd)
+                else :
+                    paint_cart_button('OFF', mylcd)
 
-                    # Now put label
-                    mylcd.Show_String(205, 207, "Resume", Font_16x32_EN, WHITE)
+                # Display the Tare info string
+                tare_lbs = get_tare_lbs(dolly_tare_state, cart_tare_state)
+                display_tare_info(mylcd, tare_lbs)
 
-                else: 
-                    mylcd.Fill_Rect(170, 197, 150, 60, BLUE)
-
-                    # Now put label
-                    mylcd.Show_String(205, 207, "Pause", Font_16x32_EN, WHITE)
-
-                # Debounce the display a little
-                Delay_Ms(500)
+            # Debounce the display a little
+            Delay_Ms(1000)
 
 
 

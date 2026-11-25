@@ -75,3 +75,20 @@ For connectors between the scale and the CYD, I am going to try using some RJ45 
 header pins on both ends, so that I can simply use (or crimp new) ethernet cables for the
 connection, which is a clever approach my Miller TIG welder foot pedal uses. We will see
 how it works.
+
+## Setting up the CYD
+
+To set up my CYD board with the micropython environment:
+
+-  Windows CMD
+- pip install esptool
+- python -m esptool to run it
+- Download the bin file from  MicroPython - Python for microcontrollers
+- python -m esptool --port COM4 --baud 961200 write_flash 0x1000 ESP32_GENERIC-20260824-v1.29.0.bin 
+- (Device manager to find com port, and I used cygwin bash, but git bash and windows cmd would probably work fine)
+- Then it showed up automatically when I restarted visual studio
+
+I had to set up a Visual Code extension (micropico).  Thonny was nice also, but I spend a lot of time in Visual Studio Code,
+and it is pretty impressive.
+
+In a new visual studio code folder, ctrl-+shift+P, the type micropico, then select initialize MicroPico project.
