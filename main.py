@@ -339,7 +339,7 @@ while True:
         # 5 reads is about a second.  The touch screen is slow also.
 
         loopcount += 1
-        if loopcount > 35 :
+        if loopcount > 45 :
             break
 
         if mytouch.Touch_Pressed(coord, 200) :

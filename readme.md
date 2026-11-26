@@ -43,17 +43,32 @@ Screwed into big rigid board
               G2     G4
 ```
 
-Case 3d modeled by me (I'll post it on thingiverse when it is sorted, email me if you want it before then).  Another nice thing about this board was that it has very detailed dimensional drawings: https://www.lcdwiki.com/res/E32R35T/E32R35T_Size.pdf
+Case 3d modeled by me (I'll post it on thingiverse when it is sorted, email me if you want it before then).  Another nice thing about this board was that it has very detailed 
+dimensional drawings: https://www.lcdwiki.com/res/E32R35T/E32R35T_Size.pdf
+
+This meant Claude was able to consume these directly and did a nifty job of designing an enclosure! 
 
 Wiring things up (CYD = Cheap Yellow Display ESP32 board I2C)
+
+For connectors between the scale and the CYD, I used some RJ45 sockets with header pins on both ends, so that I can simply use (or crimp new) ethernet 
+cables for the connection.  I actually used this a LOONNNG time ago for some other projects, and my Miller TIG welder foot pedal uses this approach.
+
+Not the cheapest approach, it adds $4 per cart for the two needed connectors, plus the cost of the ethernet cable.  But it is a huge time saver over 
+fussing with other ribbon cable options, they are twisted pair so fairly noise resistant, and they are field replaceble at 2am after somebody drives
+a cart over it and cuts a conductor.  It also leaves another 4 pins available for future projects.  Keep a pile of them in a drawer.
+
+I used these, and that is what the case is modeled for: https://www.amazon.com/dp/B0B2P9C3DK?th=1
+
+My hookup is therefore as follows.
+
 ```
 
-        CYD                  Ribbon       HX711
-    =================================================
-        3.3V (Red)           Red          VCC (Red)
-        SDA/IO32 (Black)     Orange       Data (Orange)
-        SCL/IO25 (Yel)       Yellow       Clk (White)
-        Gnd (Grn)            Grn          Gnd (Black)
+        CYD                RJ-45 Socket     HX711
+    =======================================================
+        3.3V (Red)              1         VCC (Red)
+        SDA/IO32 (Black)        2         Data (Orange)
+        SCL/IO25 (Yel)          3         Clk (White)
+        Gnd (Grn)               4         Gnd (Black)
 ```
 
 Wiring things up (HX711 to 4x half bridge strain gauges)
@@ -71,16 +86,12 @@ Wiring things up (HX711 to 4x half bridge strain gauges)
                   G1 White          G2-White
 ```
 
-For connectors between the scale and the CYD, I am going to try using some RJ45 sockets with
-header pins on both ends, so that I can simply use (or crimp new) ethernet cables for the
-connection, which is a clever approach my Miller TIG welder foot pedal uses. We will see
-how it works.
 
 ## Setting up the CYD
 
 To set up my CYD board with the micropython environment:
 
--  Windows CMD
+- Windows CMD
 - pip install esptool
 - python -m esptool to run it
 - Download the bin file from  MicroPython - Python for microcontrollers
