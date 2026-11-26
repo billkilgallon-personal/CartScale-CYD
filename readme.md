@@ -9,7 +9,7 @@ load up the cart, wheel it onto this scale, measure the weight all at once (ther
 to chose a cart tare or a dolly tare or a traditional tare setting), and wheel it on back
 for stocking. 
 
-CYD is "Cheap Yellow Display", and is an inexpensive ESP32 based development board with built in touch screen that is widely available and well supported by hobbyists such as myself.
+The CYD is "Cheap Yellow Display", and is an inexpensive ESP32 based development board with built in touch screen that is widely available and well supported by hobbyists such as myself.
 
 This is a work in progress, documentation will be updated once it is matured. The code works now though.
 
@@ -35,7 +35,7 @@ This is a work in progress, documentation will be updated once it is matured. Th
 
 ## Other Info
 
-3d printed strain gauge holders from Thingiverse module scaled up by 1%
+I used 3d printed strain gauge holders from Thingiverse scaled up by 1%
 
 Screwed into big rigid board
 ```
@@ -43,19 +43,20 @@ Screwed into big rigid board
               G2     G4
 ```
 
-Case 3d modeled by me (I'll post it on thingiverse when it is sorted, email me if you want it before then).  Another nice thing about this board was that it has very detailed 
-dimensional drawings: https://www.lcdwiki.com/res/E32R35T/E32R35T_Size.pdf
+I modelled a 3d case, but Claude did a better one.  I will post it on thingiverse when it is sorted, email me if you want it before then.  
 
-This meant Claude was able to consume these directly and did a nifty job of designing an enclosure! 
+Another nice thing about this board was that it has very detailed dimensional drawings: https://www.lcdwiki.com/res/E32R35T/E32R35T_Size.pdf
 
-Wiring things up (CYD = Cheap Yellow Display ESP32 board I2C)
+This meant Claude was able to consume these directly and did a nifty job of designing an enclosure.
+
+## Wiring things up (CYD = Cheap Yellow Display ESP32 board I2C)
 
 For connectors between the scale and the CYD, I used some RJ45 sockets with header pins on both ends, so that I can simply use (or crimp new) ethernet 
 cables for the connection.  I actually used this a LOONNNG time ago for some other projects, and my Miller TIG welder foot pedal uses this approach.
 
-Not the cheapest approach, it adds $4 per cart for the two needed connectors, plus the cost of the ethernet cable.  But it is a huge time saver over 
+It is not the cheapest approach, it adds $4 per cart for the two needed connectors, plus the cost of the ethernet cable.  But it is a huge time saver over 
 fussing with other ribbon cable options, they are twisted pair so fairly noise resistant, and they are field replaceble at 2am after somebody drives
-a cart over it and cuts a conductor.  It also leaves another 4 pins available for future projects.  Keep a pile of them in a drawer.
+a cart over it and cuts a conductor.  It also leaves another 4 pins available for future projects.  I keep a pile of them in a drawer.
 
 I used these, and that is what the case is modeled for: https://www.amazon.com/dp/B0B2P9C3DK?th=1
 
